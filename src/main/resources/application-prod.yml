@@ -26,9 +26,12 @@ spring:
 
 logging:
   level:
+    root: INFO
     com.puntored.transactions_api: INFO
-    org.springframework.web: WARN
+    org.springframework.web: INFO
+    org.springframework.boot: INFO
     org.hibernate: WARN
+    org.springframework.boot.context.properties: DEBUG  # Para diagnosticar problemas de configuración
 
 # CORS para producción (dominios específicos)
 cors:

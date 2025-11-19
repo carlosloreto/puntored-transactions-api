@@ -285,6 +285,82 @@ La aplicación está configurada para usar automáticamente el puerto proporcion
 
 **Nota importante:** La aplicación está configurada para usar `server.port=${PORT:8080}` en el perfil de producción, lo que permite que Cloud Run asigne el puerto automáticamente.
 
+### 🔧 Troubleshooting: Error "container failed to start" en Cloud Run
+
+Si ves el error `The user-provided container failed to start and listen on the port`, sigue estos pasos:
+
+#### 1. Verificar Variables de Entorno
+Asegúrate de que **TODAS** estas variables estén configuradas en Cloud Run:
+
+```bash
+SPRING_PROFILES_ACTIVE=prod
+DB_URL=jdbc:postgresql://[host]:5432/[database]
+DB_USERNAME=[usuario]
+DB_PASSWORD=[contraseña]
+PUNTORED_BASE_URL=https://[url-api-puntored]
+PUNTORED_API_KEY=[tu-api-key]
+PUNTORED_USER=[usuario]
+PUNTORED_PASSWORD=[contraseña]
+ALLOWED_ORIGINS=https://tu-frontend.com
+SUPABASE_JWT_SECRET=[jwt-secret]
+SUPABASE_JWT_ISSUER=https://[proyecto].supabase.co/auth/v1
+```
+
+**⚠️ CRÍTICO:** Si falta `SPRING_PROFILES_ACTIVE=prod`, la aplicación usará el perfil `dev` por defecto, que requiere `application-dev.yml` (que no debe estar en producción).
+
+#### 2. Revisar Logs de Cloud Run
+1. Ve a [Google Cloud Console > Cloud Run](https://console.cloud.google.com/run)
+2. Selecciona tu servicio `puntored-transactions-api`
+3. Haz clic en "Logs" para ver los logs de la aplicación
+4. Busca errores como:
+   - `Failed to bind properties`
+   - `Could not resolve placeholder`
+   - `Connection refused` (base de datos)
+   - `Application run failed`
+
+#### 3. Verificar Conexión a Base de Datos
+- Asegúrate de que la URL de la base de datos sea correcta
+- Verifica que la base de datos permita conexiones desde Cloud Run (IPs de Google Cloud)
+- Si usas Supabase, verifica que el pooler esté habilitado
+
+#### 4. Verificar Timeout y Memoria
+En la configuración del servicio:
+- **Timeout:** Aumenta a 300 segundos (5 minutos)
+- **Memoria:** Mínimo 512 MiB (recomendado 1 GiB para aplicaciones Spring Boot)
+- **CPU:** Al menos 1 CPU
+
+#### 5. Probar Localmente con Variables de Entorno
+Antes de desplegar, prueba localmente con las mismas variables:
+
+```bash
+export SPRING_PROFILES_ACTIVE=prod
+export DB_URL="jdbc:postgresql://..."
+export DB_USERNAME="..."
+# ... (todas las variables)
+
+./mvnw spring-boot:run
+```
+
+Si funciona localmente pero no en Cloud Run, el problema es la configuración de Cloud Run.
+
+#### 6. Verificar que el Build se Complete Correctamente
+En los logs de Cloud Build, verifica que:
+- El buildpack detecte correctamente la aplicación Java
+- La compilación Maven se complete sin errores
+- La imagen se construya correctamente
+
+#### 7. Comandos Útiles para Diagnóstico
+```bash
+# Ver logs en tiempo real
+gcloud run services logs read puntored-transactions-api --region=southamerica-east1 --limit=50
+
+# Ver detalles del servicio
+gcloud run services describe puntored-transactions-api --region=southamerica-east1
+
+# Ver revisiones fallidas
+gcloud run revisions list --service=puntored-transactions-api --region=southamerica-east1
+```
+
 ## 🌐 Endpoints
 
 ### Autenticación

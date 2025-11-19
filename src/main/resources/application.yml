@@ -1,6 +1,9 @@
 # Configuración BASE (común para todos los perfiles)
 # Las credenciales específicas están en application-dev.yml y application-prod.yml
 
+server:
+  port: ${PORT:8080}  # Puerto por defecto, Cloud Run proporciona PORT automáticamente
+
 spring:
   application:
     name: puntored-transactions-api
