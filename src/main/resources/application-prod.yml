@@ -3,7 +3,7 @@
 # Requiere variables de entorno configuradas
 
 server:
-  port: ${PORT:8080}  # Cloud Run proporciona PORT, por defecto 8080
+  port: ${PORT:8080}
 
 spring:
   datasource:
@@ -26,12 +26,9 @@ spring:
 
 logging:
   level:
-    root: INFO
     com.puntored.transactions_api: INFO
-    org.springframework.web: INFO
-    org.springframework.boot: INFO
+    org.springframework.web: WARN
     org.hibernate: WARN
-    org.springframework.boot.context.properties: DEBUG  # Para diagnosticar problemas de configuración
 
 # CORS para producción (dominios específicos)
 cors:

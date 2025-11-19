@@ -11,6 +11,7 @@ API REST para el portal transaccional de recargas móviles de Puntored. Implemen
 - [Instalación](#instalación)
 - [Configuración](#configuración)
 - [Ejecución](#ejecución)
+- [Despliegue en Google Cloud Run](#despliegue-en-google-cloud-run)
 - [Endpoints](#endpoints)
 - [Reglas de Negocio](#reglas-de-negocio)
 - [Tests](#tests)
@@ -171,8 +172,6 @@ ALLOWED_ORIGINS=https://tu-frontend.com
 
 | Variable | Descripción | Requerido | Perfil |
 |----------|-------------|-----------|--------|
-| `SPRING_PROFILES_ACTIVE` | Perfil activo de Spring Boot | Sí (para prod) | prod |
-| `PORT` | Puerto del servidor (Cloud Run lo proporciona automáticamente) | No (default: 8080) | prod |
 | `DB_URL` | URL conexión PostgreSQL | Sí | prod |
 | `DB_USERNAME` | Usuario base de datos | Sí | prod |
 | `DB_PASSWORD` | Contraseña base de datos | Sí | prod |
@@ -183,8 +182,6 @@ ALLOWED_ORIGINS=https://tu-frontend.com
 | `PUNTORED_USER` | Usuario autenticación | Sí | prod |
 | `PUNTORED_PASSWORD` | Contraseña autenticación | Sí | prod |
 | `ALLOWED_ORIGINS` | Orígenes CORS permitidos | Sí | prod |
-| `SUPABASE_JWT_SECRET` | JWT Secret de Supabase | Sí | prod |
-| `SUPABASE_JWT_ISSUER` | JWT Issuer de Supabase | Sí | prod |
 
 ## ▶️ Ejecución
 
@@ -243,123 +240,205 @@ docker run -p 8080:8080 \
   puntored-api
 ```
 
-#### Opción 4: Google Cloud Run
-La aplicación está configurada para usar automáticamente el puerto proporcionado por Cloud Run.
+## ☁️ Despliegue en Google Cloud Run
 
-**Pasos para desplegar:**
+Esta API está preparada para desplegarse en Google Cloud Run usando **buildpacks de Java** (sin necesidad de Dockerfile).
 
-1. **Conectar el repositorio a Cloud Run:**
-   - En Google Cloud Console, ve a Cloud Run
-   - Crea un nuevo servicio
-   - Selecciona "Deploy from source repository"
-   - Conecta tu repositorio de GitHub
+### Prerrequisitos
 
-2. **Configurar variables de entorno en Cloud Run:**
-   En la sección "Variables y secretos", agrega todas las siguientes variables:
+1. **Cuenta de Google Cloud** con proyecto creado
+2. **Repositorio** conectado a Google Cloud (GitHub, GitLab, Bitbucket o Cloud Source Repositories)
+3. **APIs habilitadas**:
+   - Cloud Run API
+   - Cloud Build API
+   - Secret Manager API (recomendado)
 
-   | Variable | Valor |
-   |----------|-------|
-   | `SPRING_PROFILES_ACTIVE` | `prod` |
-   | `DB_URL` | `jdbc:postgresql://[host]:5432/[database]` |
-   | `DB_USERNAME` | `[usuario]` |
-   | `DB_PASSWORD` | `[contraseña]` |
-   | `PUNTORED_BASE_URL` | `https://[url-api-puntored]` |
-   | `PUNTORED_API_KEY` | `[tu-api-key]` |
-   | `PUNTORED_USER` | `[usuario]` |
-   | `PUNTORED_PASSWORD` | `[contraseña]` |
-   | `ALLOWED_ORIGINS` | `https://tu-frontend.com` |
-   | `SUPABASE_JWT_SECRET` | `[jwt-secret]` |
-   | `SUPABASE_JWT_ISSUER` | `https://[proyecto].supabase.co/auth/v1` |
+### Configuración Pre-Despliegue
 
-3. **Configuración del servicio:**
-   - **Región:** Selecciona la región deseada (ej: `southamerica-east1`)
-   - **Autenticación:** Permite solicitudes no autenticadas (si es necesario)
-   - **Puerto:** La aplicación usa automáticamente la variable `PORT` (no es necesario configurarlo)
-   - **Timeout:** Aumenta a 300 segundos si es necesario
-   - **Memoria:** Mínimo 512 MiB recomendado
+#### 1. Habilitar APIs en Google Cloud Console
 
-4. **Desplegar:**
-   - Haz clic en "Deploy"
-   - Cloud Run construirá la imagen automáticamente usando buildpacks
-   - El servicio estará disponible en la URL proporcionada
+1. Ir a **APIs & Services > Library**
+2. Habilitar:
+   - Cloud Run API
+   - Cloud Build API
+   - Secret Manager API (recomendado para secretos)
 
-**Nota importante:** La aplicación está configurada para usar `server.port=${PORT:8080}` en el perfil de producción, lo que permite que Cloud Run asigne el puerto automáticamente.
+#### 2. Configurar Secret Manager (Recomendado)
 
-### 🔧 Troubleshooting: Error "container failed to start" en Cloud Run
+Para gestionar credenciales de forma segura:
 
-Si ves el error `The user-provided container failed to start and listen on the port`, sigue estos pasos:
+1. Ir a **Secret Manager** en Google Cloud Console
+2. Crear secretos para valores sensibles:
+   - `db-password`
+   - `puntored-api-key`
+   - `puntored-password`
+   - `supabase-jwt-secret`
 
-#### 1. Verificar Variables de Entorno
-Asegúrate de que **TODAS** estas variables estén configuradas en Cloud Run:
+#### 3. Verificar Configuración del Proyecto
 
-```bash
+El proyecto ya está configurado con:
+- ✅ Puerto dinámico: `server.port: ${PORT:8080}` en `application-prod.yml`
+- ✅ Perfil de producción: Usa variables de entorno
+- ✅ Archivo `.gcloudignore`: Excluye archivos innecesarios del build
+
+### Despliegue desde Cloud Run Console
+
+#### Paso 1: Crear Nuevo Servicio
+
+1. Ir a **Cloud Run > Create Service**
+2. **Service name**: `transactions-api` o `puntored-transactions-api`
+3. **Region**: Seleccionar región cercana (ej: `us-central1`, `us-east1`)
+
+#### Paso 2: Configurar Despliegue
+
+**Pestaña "Container"**:
+- Seleccionar **"Deploy from source code"**
+- **Repository**: Conectar tu repositorio (GitHub, GitLab, Bitbucket)
+- **Branch**: `main` o `master`
+- **Build Type**: **Buildpacks** (no Dockerfile)
+- **Runtime**: **Java**
+- **Java version**: **17**
+
+**Build Configuration**:
+- **Buildpack builder**: Dejar por defecto (Google Cloud detectará automáticamente Maven)
+- **Build command**: (vacío, Maven se ejecuta automáticamente)
+- **Output directory**: `target/` (donde Maven genera el JAR)
+
+#### Paso 3: Configurar Variables de Entorno
+
+**Pestaña "Variables & Secrets"**:
+
+**Variables de entorno estándar**:
+```
 SPRING_PROFILES_ACTIVE=prod
-DB_URL=jdbc:postgresql://[host]:5432/[database]
-DB_USERNAME=[usuario]
-DB_PASSWORD=[contraseña]
-PUNTORED_BASE_URL=https://[url-api-puntored]
-PUNTORED_API_KEY=[tu-api-key]
-PUNTORED_USER=[usuario]
-PUNTORED_PASSWORD=[contraseña]
+PORT=8080
+```
+
+**Variables de entorno de la aplicación** (configurar todas las requeridas):
+```
+DB_URL=jdbc:postgresql://[HOST]:5432/postgres
+DB_USERNAME=postgres.[PROJECT_REF]
+DB_PASSWORD=[SECRET_VALUE o referencia a Secret Manager]
+DB_POOL_SIZE=20
+DB_MIN_IDLE=10
+PUNTORED_BASE_URL=https://us-central1-puntored-dev.cloudfunctions.net/technicalTest-developer/api
+PUNTORED_API_KEY=[SECRET_VALUE o referencia a Secret Manager]
+PUNTORED_USER=[USER]
+PUNTORED_PASSWORD=[SECRET_VALUE o referencia a Secret Manager]
 ALLOWED_ORIGINS=https://tu-frontend.com
-SUPABASE_JWT_SECRET=[jwt-secret]
-SUPABASE_JWT_ISSUER=https://[proyecto].supabase.co/auth/v1
+SUPABASE_JWT_SECRET=[SECRET_VALUE o referencia a Secret Manager]
+SUPABASE_JWT_ISSUER=https://[PROJECT_REF].supabase.co/auth/v1
 ```
 
-**⚠️ CRÍTICO:** Si falta `SPRING_PROFILES_ACTIVE=prod`, la aplicación usará el perfil `dev` por defecto, que requiere `application-dev.yml` (que no debe estar en producción).
+**Usar Secret Manager** (recomendado):
+- Para valores sensibles, usar la opción **"Reference a secret"**
+- Seleccionar el secreto creado en Secret Manager
+- Cloud Run inyectará el valor automáticamente
 
-#### 2. Revisar Logs de Cloud Run
-1. Ve a [Google Cloud Console > Cloud Run](https://console.cloud.google.com/run)
-2. Selecciona tu servicio `puntored-transactions-api`
-3. Haz clic en "Logs" para ver los logs de la aplicación
-4. Busca errores como:
-   - `Failed to bind properties`
-   - `Could not resolve placeholder`
-   - `Connection refused` (base de datos)
-   - `Application run failed`
+#### Paso 4: Configurar Recursos y Escalado
 
-#### 3. Verificar Conexión a Base de Datos
-- Asegúrate de que la URL de la base de datos sea correcta
-- Verifica que la base de datos permita conexiones desde Cloud Run (IPs de Google Cloud)
-- Si usas Supabase, verifica que el pooler esté habilitado
+**Pestaña "Container, Networking, Security"**:
 
-#### 4. Verificar Timeout y Memoria
-En la configuración del servicio:
-- **Timeout:** Aumenta a 300 segundos (5 minutos)
-- **Memoria:** Mínimo 512 MiB (recomendado 1 GiB para aplicaciones Spring Boot)
-- **CPU:** Al menos 1 CPU
+**Container**:
+- **CPU**: 1 (mínimo recomendado para Spring Boot)
+- **Memory**: 512Mi (mínimo) o 1Gi (recomendado)
+- **Timeout**: 300s (5 minutos)
+- **Concurrency**: 80 (default, ajustar según carga)
+- **Max instances**: 10 (ajustar según necesidades)
+- **Min instances**: 0 (para ahorrar costos) o 1 (para evitar cold starts)
 
-#### 5. Probar Localmente con Variables de Entorno
-Antes de desplegar, prueba localmente con las mismas variables:
+**Networking**:
+- **Port**: 8080 (Cloud Run inyectará PORT automáticamente)
+- **Allow unauthenticated invocations**: SÍ (si la API es pública) o NO (si requiere autenticación)
 
-```bash
-export SPRING_PROFILES_ACTIVE=prod
-export DB_URL="jdbc:postgresql://..."
-export DB_USERNAME="..."
-# ... (todas las variables)
+#### Paso 5: Configurar Conexión a Base de Datos
 
-./mvnw spring-boot:run
-```
+**Si la BD está en Supabase (externo)**:
+- No requiere configuración adicional en Cloud Run
+- Asegurar que las IPs de Cloud Run estén permitidas en Supabase (si hay restricciones de IP)
 
-Si funciona localmente pero no en Cloud Run, el problema es la configuración de Cloud Run.
+**Si la BD está en Cloud SQL**:
+- **Pestaña "Connections"**: Conectar a instancia de Cloud SQL
+- Cloud SQL Proxy se configurará automáticamente
 
-#### 6. Verificar que el Build se Complete Correctamente
-En los logs de Cloud Build, verifica que:
-- El buildpack detecte correctamente la aplicación Java
-- La compilación Maven se complete sin errores
-- La imagen se construya correctamente
+#### Paso 6: Desplegar
 
-#### 7. Comandos Útiles para Diagnóstico
-```bash
-# Ver logs en tiempo real
-gcloud run services logs read puntored-transactions-api --region=southamerica-east1 --limit=50
+1. Revisar todas las configuraciones
+2. Click en **"Deploy"** o **"Create"**
+3. Cloud Build iniciará automáticamente:
+   - Clonará el repositorio
+   - Detectará que es un proyecto Java/Maven
+   - Ejecutará el build con buildpacks
+   - Construirá la imagen
+   - Desplegará en Cloud Run
 
-# Ver detalles del servicio
-gcloud run services describe puntored-transactions-api --region=southamerica-east1
+### Monitorear el Despliegue
 
-# Ver revisiones fallidas
-gcloud run revisions list --service=puntored-transactions-api --region=southamerica-east1
-```
+1. **Cloud Build > History**: Ver logs del build en tiempo real
+2. Verificar que:
+   - Maven compile correctamente
+   - Buildpack detecte Java 17
+   - Se genere el JAR ejecutable
+   - La imagen se construya exitosamente
+
+### Verificar el Despliegue
+
+1. En **Cloud Run**, verificar que el servicio esté **Active**
+2. Obtener la URL del servicio (formato: `https://transactions-api-[hash]-[region].a.run.app`)
+3. Probar endpoint: `GET https://[URL]/api/auth`
+4. Verificar logs en **Cloud Run > Logs**
+
+### Actualizar el Servicio
+
+Para desplegar una nueva versión:
+
+1. Hacer push de cambios al repositorio
+2. En **Cloud Run**, click en **"Edit & Deploy New Revision"**
+3. Seleccionar el nuevo commit/branch
+4. Click en **"Deploy"**
+5. Cloud Build construirá y desplegará automáticamente
+
+### Rollback
+
+Si es necesario volver a una versión anterior:
+
+1. En **Cloud Run > Revisions**
+2. Seleccionar revisión anterior
+3. Click en **"Manage Traffic"**
+4. Asignar 100% del tráfico a la revisión anterior
+
+### Configuración Post-Despliegue
+
+#### Dominio Personalizado (Opcional)
+
+1. **Cloud Run > Manage Custom Domains**
+2. Mapear dominio a la URL del servicio
+3. SSL se configura automáticamente
+
+#### Monitoreo
+
+1. **Cloud Monitoring**: Habilitar métricas automáticas
+2. **Cloud Logging**: Verificar que los logs se estén generando
+3. Configurar alertas para errores críticos
+
+### Notas Importantes
+
+- ✅ Cloud Run usa buildpacks automáticamente cuando detecta `pom.xml` (Maven)
+- ✅ El puerto se inyecta automáticamente via variable `PORT`
+- ✅ Los secretos deben gestionarse via Secret Manager para producción
+- ✅ El perfil `prod` debe activarse con `SPRING_PROFILES_ACTIVE=prod`
+- ✅ Cloud Run escala a cero cuando no hay tráfico (ahorro de costos)
+- ⚠️ Los cold starts pueden tomar 5-10 segundos (considerar `min instances = 1`)
+
+### Checklist Pre-Despliegue
+
+- [ ] Variables de entorno configuradas (o secretos en Secret Manager)
+- [ ] Base de datos accesible desde Cloud Run (IPs permitidas en Supabase)
+- [ ] Repositorio conectado a Google Cloud
+- [ ] APIs habilitadas (Cloud Run, Cloud Build)
+- [ ] Credenciales de Puntored API verificadas
+- [ ] CORS configurado con dominios correctos
+- [ ] JWT secret de Supabase configurado
 
 ## 🌐 Endpoints
 

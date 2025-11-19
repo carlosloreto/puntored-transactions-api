@@ -1,0 +1,61 @@
+# Archivos y directorios excluidos del build en Google Cloud Build
+# Similar a .gitignore, pero específico para Cloud Build
+
+# Directorio de compilación local
+target/
+
+# Archivos de entorno local
+.env
+.env.local
+.env.*.local
+
+# Archivos de desarrollo
+*.log
+*.swp
+*.swo
+*~
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de Git (no necesarios para el build)
+.git/
+.gitignore
+
+# Archivos de documentación local
+*.md
+!README.md
+
+# Archivos de configuración de desarrollo
+application-dev.yml
+application-dev-example.yml
+application-example.yml
+
+# Archivos de Postman (no necesarios para el build)
+postman/
+
+# Archivos de Maven wrapper (se usarán los de Cloud Build)
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# Archivos de test (no necesarios para el build de producción)
+src/test/
+
+# Archivos de migración de base de datos (si no se necesitan en runtime)
+database/
+
+# Archivos de licencia y changelog
+LICENSE
+CHANGELOG.md
+
