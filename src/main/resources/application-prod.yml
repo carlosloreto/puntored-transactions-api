@@ -42,6 +42,9 @@ puntored:
     auth:
       user: ${PUNTORED_USER}
       password: ${PUNTORED_PASSWORD}
+    timeouts:
+      default-timeout: ${PUNTORED_DEFAULT_TIMEOUT:10}  # Timeout para auth y getSuppliers (segundos)
+      buy-timeout: ${PUNTORED_BUY_TIMEOUT:30}          # Timeout para operaciones de compra (segundos)
 
 # Configuración de Supabase JWT (PRODUCCIÓN)
 supabase:

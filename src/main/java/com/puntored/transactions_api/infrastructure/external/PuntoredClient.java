@@ -59,7 +59,7 @@ public class PuntoredClient implements PuntoredClientPort {
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(PuntoredAuthResponse.class)
-                    .timeout(Duration.ofSeconds(10))
+                    .timeout(Duration.ofSeconds(properties.getTimeouts().getDefaultTimeout()))
                     .block();
 
             if (response == null || response.getToken() == null) {
@@ -89,7 +89,7 @@ public class PuntoredClient implements PuntoredClientPort {
                     .header("authorization", token)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<List<SupplierDto>>() {})
-                    .timeout(Duration.ofSeconds(10))
+                    .timeout(Duration.ofSeconds(properties.getTimeouts().getDefaultTimeout()))
                     .block();
 
             if (suppliers == null) {
@@ -139,7 +139,7 @@ public class PuntoredClient implements PuntoredClientPort {
                     .bodyValue(request)
                     .retrieve()
                     .bodyToMono(BuyResponse.class)
-                    .timeout(Duration.ofSeconds(30))
+                    .timeout(Duration.ofSeconds(properties.getTimeouts().getBuyTimeout()))
                     .block();
 
             if (response == null || response.getTransactionalID() == null) {

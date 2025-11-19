@@ -29,3 +29,10 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+
+# Configuración de timeouts para API de Puntored (valores por defecto)
+puntored:
+  api:
+    timeouts:
+      default-timeout: 10  # Timeout para auth y getSuppliers (segundos)
+      buy-timeout: 30      # Timeout para operaciones de compra (segundos)
