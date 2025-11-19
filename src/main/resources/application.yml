@@ -1,0 +1,27 @@
+# Configuración BASE (común para todos los perfiles)
+# Las credenciales específicas están en application-dev.yml y application-prod.yml
+
+spring:
+  application:
+    name: puntored-transactions-api
+  
+  # Perfil activo por defecto (cambiar a 'prod' en producción)
+  profiles:
+    active: dev
+  
+  datasource:
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+# Configuración de Swagger/OpenAPI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true

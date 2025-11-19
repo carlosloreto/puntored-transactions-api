@@ -1,0 +1,283 @@
+{
+  "info": {
+    "name": "Puntored Transactions API",
+    "description": "Colección de requests para probar la API de recargas de Puntored",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Autenticación",
+      "item": [
+        {
+          "name": "Obtener Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.token);",
+                  "    console.log('Token guardado:', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth"]
+            },
+            "description": "Obtiene un token Bearer para autenticación con Puntored"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Proveedores",
+      "item": [
+        {
+          "name": "Listar Proveedores",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/suppliers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "suppliers"]
+            },
+            "description": "Lista todos los proveedores de recargas disponibles"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Recargas",
+      "item": [
+        {
+          "name": "Crear Recarga - Claro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"3001234567\",\n  \"amount\": 10000,\n  \"supplierId\": \"8753\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/recharges",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recharges"]
+            },
+            "description": "Crea una recarga de 10,000 pesos para Claro"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear Recarga - Movistar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"3101234567\",\n  \"amount\": 20000,\n  \"supplierId\": \"9773\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/recharges",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recharges"]
+            },
+            "description": "Crea una recarga de 20,000 pesos para Movistar"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Transacciones",
+      "item": [
+        {
+          "name": "Listar Todas las Transacciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/transactions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "transactions"]
+            },
+            "description": "Obtiene el historial completo de transacciones"
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener Transacción por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/transactions/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "transactions", "1"]
+            },
+            "description": "Obtiene los detalles de una transacción específica por ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Transacciones por Teléfono",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/transactions/phone/3001234567",
+              "host": ["{{base_url}}"],
+              "path": ["api", "transactions", "phone", "3001234567"]
+            },
+            "description": "Obtiene todas las transacciones de un número de teléfono específico"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Validaciones",
+      "item": [
+        {
+          "name": "Error - Teléfono Inválido (no inicia con 3)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"2001234567\",\n  \"amount\": 10000,\n  \"supplierId\": \"8753\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/recharges",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recharges"]
+            },
+            "description": "Debe retornar error 400 - teléfono no inicia con 3"
+          },
+          "response": []
+        },
+        {
+          "name": "Error - Monto Menor al Mínimo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"3001234567\",\n  \"amount\": 500,\n  \"supplierId\": \"8753\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/recharges",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recharges"]
+            },
+            "description": "Debe retornar error 400 - monto menor a 1000"
+          },
+          "response": []
+        },
+        {
+          "name": "Error - Monto Mayor al Máximo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"3001234567\",\n  \"amount\": 150000,\n  \"supplierId\": \"8753\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/recharges",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recharges"]
+            },
+            "description": "Debe retornar error 400 - monto mayor a 100000"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+

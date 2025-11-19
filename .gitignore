@@ -1,0 +1,46 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Environment Variables & Local Config ###
+.env
+.env.local
+.env.production
+.env.*.local
+application-local.yml
+**/application-local.yml
+*.env
+### IMPORTANTE: application-dev.yml contiene credenciales reales ###
+### NO subir al repositorio - solo subir application-dev-example.yml ###
+src/main/resources/application-dev.yml
+

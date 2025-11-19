@@ -1,0 +1,55 @@
+package com.puntored.transactions_api.adapter.input;
+
+import com.puntored.transactions_api.adapter.input.dto.SupplierResponse;
+import com.puntored.transactions_api.application.usecase.GetSuppliersUseCase;
+import com.puntored.transactions_api.domain.model.Supplier;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Controlador REST para proveedores de recargas
+ */
+@RestController
+@RequestMapping("/api/suppliers")
+@RequiredArgsConstructor
+@Slf4j
+@Tag(name = "Proveedores", description = "Endpoints para gestión de proveedores de recargas")
+public class SupplierController {
+
+    private final GetSuppliersUseCase getSuppliersUseCase;
+
+    @GetMapping
+    @Operation(summary = "Listar proveedores", 
+               description = "Obtiene la lista de proveedores de recargas disponibles",
+               security = @SecurityRequirement(name = "bearer-token"))
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de proveedores obtenida exitosamente"),
+        @ApiResponse(responseCode = "401", description = "Token no autorizado"),
+        @ApiResponse(responseCode = "502", description = "Error en comunicación con Puntored")
+    })
+    public ResponseEntity<List<SupplierResponse>> getSuppliers(
+            @Parameter(description = "Token Bearer de autenticación", required = true)
+            @RequestHeader("Authorization") String token) {
+        
+        log.info("GET /api/suppliers - Solicitud de proveedores");
+        List<Supplier> suppliers = getSuppliersUseCase.execute(token);
+        
+        List<SupplierResponse> response = suppliers.stream()
+                .map(s -> new SupplierResponse(s.getId(), s.getName()))
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(response);
+    }
+}
+

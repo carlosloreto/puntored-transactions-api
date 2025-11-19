@@ -1,0 +1,47 @@
+# Configuración para PRODUCCIÓN
+# Este perfil se activa con: spring.profiles.active=prod
+# Requiere variables de entorno configuradas
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+      minimum-idle: ${DB_MIN_IDLE:10}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      auto-commit: true
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Solo valida, NO modifica schema en producción
+    show-sql: false       # No muestra queries en producción
+    open-in-view: false
+
+logging:
+  level:
+    com.puntored.transactions_api: INFO
+    org.springframework.web: WARN
+    org.hibernate: WARN
+
+# CORS para producción (dominios específicos)
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS}
+
+# Configuración de la API de Puntored (PRODUCCIÓN)
+puntored:
+  api:
+    base-url: ${PUNTORED_BASE_URL}
+    api-key: ${PUNTORED_API_KEY}
+    auth:
+      user: ${PUNTORED_USER}
+      password: ${PUNTORED_PASSWORD}
+
+# Configuración de Supabase JWT (PRODUCCIÓN)
+supabase:
+  jwt-secret: ${SUPABASE_JWT_SECRET}
+  jwt-issuer: ${SUPABASE_JWT_ISSUER}
+

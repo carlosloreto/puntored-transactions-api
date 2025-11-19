@@ -1,0 +1,50 @@
+# Configuración de EJEMPLO para DESARROLLO LOCAL
+# Copia este archivo como application-dev.yml y reemplaza con tus credenciales reales
+# NUNCA subas application-dev.yml con credenciales reales al repositorio
+
+spring:
+  datasource:
+    url: jdbc:postgresql://TU-HOST.pooler.supabase.com:5432/postgres
+    username: postgres.TU_PROJECT_REF
+    password: TU_PASSWORD_AQUI
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      auto-commit: true
+  
+  jpa:
+    hibernate:
+      ddl-auto: update  # Permite crear/actualizar tablas automáticamente
+    show-sql: true      # Muestra queries SQL en logs
+    open-in-view: false
+
+logging:
+  level:
+    com.puntored.transactions_api: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# CORS para desarrollo local
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:5173
+
+# Configuración de la API de Puntored (DESARROLLO)
+puntored:
+  api:
+    base-url: https://us-central1-puntored-dev.cloudfunctions.net/technicalTest-developer/api
+    api-key: TU_API_KEY_DE_PUNTORED_AQUI
+    auth:
+      user: TU_USUARIO_PUNTORED
+      password: 'TU_PASSWORD_PUNTORED'
+
+# Configuración de Supabase JWT
+supabase:
+  jwt-secret: TU_JWT_SECRET_DE_SUPABASE_AQUI
+  # Obtener de: Supabase Dashboard > Settings > API > JWT Settings > JWT Secret
+  jwt-issuer: https://TU_PROJECT_REF.supabase.co/auth/v1
+  # Formato: https://{PROJECT_REF}.supabase.co/auth/v1
+

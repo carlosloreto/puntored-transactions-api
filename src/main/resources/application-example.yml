@@ -1,0 +1,47 @@
+# Archivo de ejemplo de configuración
+# Copiar este archivo como application.yml y configurar con los valores correctos
+
+spring:
+  application:
+    name: puntored-transactions-api
+  
+  datasource:
+    url: jdbc:postgresql://[HOST]:5432/[DATABASE]
+    username: [USERNAME]
+    password: [PASSWORD]
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      auto-commit: true
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+
+logging:
+  level:
+    com.puntored.transactions_api: DEBUG
+    org.springframework.web: INFO
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+# Configuración de la API de Puntored
+puntored:
+  api:
+    base-url: https://us-central1-puntored-dev.cloudfunctions.net/technicalTest-developer/api
+    api-key: [TU_API_KEY]
+    auth:
+      user: [TU_USUARIO]
+      password: "[TU_PASSWORD]"
+
