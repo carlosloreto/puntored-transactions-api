@@ -2,6 +2,9 @@
 # Este perfil se activa con: spring.profiles.active=prod
 # Requiere variables de entorno configuradas
 
+server:
+  port: ${PORT:8080}  # Cloud Run proporciona PORT, por defecto 8080
+
 spring:
   datasource:
     url: ${DB_URL}

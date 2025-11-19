@@ -6,8 +6,9 @@ spring:
     name: puntored-transactions-api
   
   # Perfil activo por defecto (cambiar a 'prod' en producción)
+  # En Cloud Run, usar: SPRING_PROFILES_ACTIVE=prod
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   
   datasource:
     driver-class-name: org.postgresql.Driver

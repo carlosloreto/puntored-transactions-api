@@ -171,6 +171,8 @@ ALLOWED_ORIGINS=https://tu-frontend.com
 
 | Variable | Descripción | Requerido | Perfil |
 |----------|-------------|-----------|--------|
+| `SPRING_PROFILES_ACTIVE` | Perfil activo de Spring Boot | Sí (para prod) | prod |
+| `PORT` | Puerto del servidor (Cloud Run lo proporciona automáticamente) | No (default: 8080) | prod |
 | `DB_URL` | URL conexión PostgreSQL | Sí | prod |
 | `DB_USERNAME` | Usuario base de datos | Sí | prod |
 | `DB_PASSWORD` | Contraseña base de datos | Sí | prod |
@@ -181,6 +183,8 @@ ALLOWED_ORIGINS=https://tu-frontend.com
 | `PUNTORED_USER` | Usuario autenticación | Sí | prod |
 | `PUNTORED_PASSWORD` | Contraseña autenticación | Sí | prod |
 | `ALLOWED_ORIGINS` | Orígenes CORS permitidos | Sí | prod |
+| `SUPABASE_JWT_SECRET` | JWT Secret de Supabase | Sí | prod |
+| `SUPABASE_JWT_ISSUER` | JWT Issuer de Supabase | Sí | prod |
 
 ## ▶️ Ejecución
 
@@ -238,6 +242,48 @@ docker run -p 8080:8080 \
   -e ALLOWED_ORIGINS="https://tu-frontend.com" \
   puntored-api
 ```
+
+#### Opción 4: Google Cloud Run
+La aplicación está configurada para usar automáticamente el puerto proporcionado por Cloud Run.
+
+**Pasos para desplegar:**
+
+1. **Conectar el repositorio a Cloud Run:**
+   - En Google Cloud Console, ve a Cloud Run
+   - Crea un nuevo servicio
+   - Selecciona "Deploy from source repository"
+   - Conecta tu repositorio de GitHub
+
+2. **Configurar variables de entorno en Cloud Run:**
+   En la sección "Variables y secretos", agrega todas las siguientes variables:
+
+   | Variable | Valor |
+   |----------|-------|
+   | `SPRING_PROFILES_ACTIVE` | `prod` |
+   | `DB_URL` | `jdbc:postgresql://[host]:5432/[database]` |
+   | `DB_USERNAME` | `[usuario]` |
+   | `DB_PASSWORD` | `[contraseña]` |
+   | `PUNTORED_BASE_URL` | `https://[url-api-puntored]` |
+   | `PUNTORED_API_KEY` | `[tu-api-key]` |
+   | `PUNTORED_USER` | `[usuario]` |
+   | `PUNTORED_PASSWORD` | `[contraseña]` |
+   | `ALLOWED_ORIGINS` | `https://tu-frontend.com` |
+   | `SUPABASE_JWT_SECRET` | `[jwt-secret]` |
+   | `SUPABASE_JWT_ISSUER` | `https://[proyecto].supabase.co/auth/v1` |
+
+3. **Configuración del servicio:**
+   - **Región:** Selecciona la región deseada (ej: `southamerica-east1`)
+   - **Autenticación:** Permite solicitudes no autenticadas (si es necesario)
+   - **Puerto:** La aplicación usa automáticamente la variable `PORT` (no es necesario configurarlo)
+   - **Timeout:** Aumenta a 300 segundos si es necesario
+   - **Memoria:** Mínimo 512 MiB recomendado
+
+4. **Desplegar:**
+   - Haz clic en "Deploy"
+   - Cloud Run construirá la imagen automáticamente usando buildpacks
+   - El servicio estará disponible en la URL proporcionada
+
+**Nota importante:** La aplicación está configurada para usar `server.port=${PORT:8080}` en el perfil de producción, lo que permite que Cloud Run asigne el puerto automáticamente.
 
 ## 🌐 Endpoints
 
