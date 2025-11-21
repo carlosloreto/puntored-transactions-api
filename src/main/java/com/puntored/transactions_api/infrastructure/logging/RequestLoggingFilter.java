@@ -55,8 +55,9 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         }
 
         // Intentar extraer userId del JWT si está presente
+        // Solo para endpoints que requieren autenticación (no /api/auth)
         String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith("Bearer ") && !path.startsWith("/api/auth")) {
             try {
                 String userId = jwtValidationService.validateAndExtractUserId(authHeader);
                 loggingService.setUserId(userId);
