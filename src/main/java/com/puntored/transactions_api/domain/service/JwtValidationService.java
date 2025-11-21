@@ -26,6 +26,7 @@ public class JwtValidationService {
 
     /**
      * Valida el token JWT y extrae el email del usuario
+     * 
      * @param authHeader Header Authorization con el formato "Bearer {token}"
      * @return Email del usuario autenticado
      * @throws IllegalArgumentException si el token es inválido o no está presente
@@ -59,8 +60,8 @@ public class JwtValidationService {
             }
 
             // 6. Extraer información del usuario
-            String sub = claims.getSubject();  // UUID del usuario en Supabase
-            String email = claims.get("email", String.class);  // Email del usuario
+            String sub = claims.getSubject(); // UUID del usuario en Supabase
+            String email = claims.get("email", String.class); // Email del usuario
 
             if (email == null || email.trim().isEmpty()) {
                 log.warn("JWT válido pero sin email - sub: {}", sub);
@@ -68,21 +69,22 @@ public class JwtValidationService {
             }
 
             log.debug("JWT validado exitosamente - issuer: {}, userId: {}, email: {}", issuer, sub, email);
-            
+
             // 7. Retornar el email (o UUID según prefieras)
             return email.trim();
 
         } catch (JwtException e) {
-            log.error("Error validando JWT: {}", e.getMessage());
+            log.warn("⚠️ Token JWT inválido o malformado: {}", e.getMessage());
             throw new IllegalArgumentException("Token inválido o expirado: " + e.getMessage());
         } catch (Exception e) {
-            log.error("Error inesperado validando JWT", e);
+            log.warn("⚠️ Error procesando token JWT: {}", e.getMessage());
             throw new IllegalArgumentException("Error procesando token de autenticación");
         }
     }
 
     /**
      * Verifica si un token es válido sin extraer información
+     * 
      * @param authHeader Header Authorization
      * @return true si el token es válido
      */
@@ -95,4 +97,3 @@ public class JwtValidationService {
         }
     }
 }
-
