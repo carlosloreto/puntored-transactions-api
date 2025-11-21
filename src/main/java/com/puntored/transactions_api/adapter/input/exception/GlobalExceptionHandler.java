@@ -33,20 +33,20 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         String message = "El cuerpo de la petición contiene JSON inválido o malformado";
-        
+
         // Intentar extraer información más específica del error
         if (ex.getMessage() != null && ex.getMessage().contains("JSON")) {
             message = "Formato JSON inválido. Verifique la sintaxis del cuerpo de la petición";
         }
-        
+
         ErrorResponse errorResponse = new ErrorResponse(
                 message,
-                HttpStatus.BAD_REQUEST.value()
-        );
+                HttpStatus.BAD_REQUEST.value());
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("errorMessage", ex.getMessage());
-        loggingService.logWarning("JSON malformado recibido", "validation", metadata);
+        metadata.put("errorType", "JSON_MALFORMED");
+        loggingService.logInfo("⚠️ JSON malformado recibido en request", "validation", metadata);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -65,25 +65,33 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(
                 "Error de validación",
                 errors,
-                HttpStatus.BAD_REQUEST.value()
-        );
+                HttpStatus.BAD_REQUEST.value());
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("errors", errors);
-        loggingService.logWarning("Validation error", "validation", metadata);
+        metadata.put("errorCount", errors.size());
+        metadata.put("fields", errors.stream()
+                .map(e -> e.split(":")[0])
+                .collect(Collectors.toList()));
+
+        String errorSummary = String.format("⚠️ Error de validación en formulario: %d campo(s) inválido(s) - %s",
+                errors.size(),
+                String.join(", ", errors));
+        loggingService.logInfo(errorSummary, "validation", metadata);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
-    @ExceptionHandler({InvalidPhoneNumberException.class, InvalidAmountException.class})
+    @ExceptionHandler({ InvalidPhoneNumberException.class, InvalidAmountException.class })
     public ResponseEntity<ErrorResponse> handleBusinessValidationExceptions(DomainException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
                 ex.getMessage(),
-                HttpStatus.BAD_REQUEST.value()
-        );
+                HttpStatus.BAD_REQUEST.value());
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("errorMessage", ex.getMessage());
-        loggingService.logWarning("Business validation error", "validation", metadata);
+        metadata.put("errorType", ex.getClass().getSimpleName());
+        String logMessage = String.format("⚠️ Validación de negocio fallida: %s", ex.getMessage());
+        loggingService.logInfo(logMessage, "validation", metadata);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -91,8 +99,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnauthorizedAccessException(UnauthorizedAccessException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
                 ex.getMessage(),
-                HttpStatus.FORBIDDEN.value()
-        );
+                HttpStatus.FORBIDDEN.value());
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("errorMessage", ex.getMessage());
@@ -104,8 +111,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handlePuntoredClientException(PuntoredClientException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
                 "Error en comunicación con servicio de recargas: " + ex.getMessage(),
-                HttpStatus.BAD_GATEWAY.value()
-        );
+                HttpStatus.BAD_GATEWAY.value());
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("errorMessage", ex.getMessage());
@@ -117,12 +123,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
                 ex.getMessage(),
-                HttpStatus.BAD_REQUEST.value()
-        );
+                HttpStatus.BAD_REQUEST.value());
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("errorMessage", ex.getMessage());
-        loggingService.logWarning("Illegal argument", "validation", metadata);
+        metadata.put("errorType", "ILLEGAL_ARGUMENT");
+        String logMessage = String.format("⚠️ Argumento inválido: %s", ex.getMessage());
+        loggingService.logInfo(logMessage, "validation", metadata);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -130,8 +137,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         ErrorResponse errorResponse = new ErrorResponse(
                 "Error interno del servidor",
-                HttpStatus.INTERNAL_SERVER_ERROR.value()
-        );
+                HttpStatus.INTERNAL_SERVER_ERROR.value());
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("errorMessage", ex.getMessage());
@@ -140,4 +146,3 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 }
-
