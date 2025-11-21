@@ -2,8 +2,8 @@ package com.puntored.transactions_api.application.usecase;
 
 import com.puntored.transactions_api.domain.model.Supplier;
 import com.puntored.transactions_api.domain.port.PuntoredClientPort;
+import com.puntored.transactions_api.infrastructure.logging.StructuredLoggingService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,10 +13,10 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class GetSuppliersUseCase {
 
     private final PuntoredClientPort puntoredClient;
+    private final StructuredLoggingService loggingService;
 
     /**
      * Ejecuta la obtención de proveedores
@@ -24,7 +24,7 @@ public class GetSuppliersUseCase {
      * @return Lista de proveedores
      */
     public List<Supplier> execute(String token) {
-        log.debug("Ejecutando caso de uso: Obtener Proveedores");
+        loggingService.logDebug("Ejecutando caso de uso: Obtener Proveedores", "external-service", null);
         return puntoredClient.getSuppliers(token);
     }
 }

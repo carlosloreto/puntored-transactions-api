@@ -6,7 +6,8 @@ import com.puntored.transactions_api.domain.exception.InvalidAmountException;
 import com.puntored.transactions_api.domain.exception.InvalidPhoneNumberException;
 import com.puntored.transactions_api.domain.exception.PuntoredClientException;
 import com.puntored.transactions_api.domain.exception.UnauthorizedAccessException;
-import lombok.extern.slf4j.Slf4j;
+import com.puntored.transactions_api.infrastructure.logging.StructuredLoggingService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -15,15 +16,19 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * Manejo global de excepciones para todos los controladores
  */
 @RestControllerAdvice
-@Slf4j
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final StructuredLoggingService loggingService;
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
@@ -39,7 +44,9 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value()
         );
 
-        log.warn("JSON malformado recibido: {}", ex.getMessage());
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("errorMessage", ex.getMessage());
+        loggingService.logWarning("JSON malformado recibido", "validation", metadata);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -61,7 +68,9 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value()
         );
 
-        log.warn("Validation error: {}", errors);
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("errors", errors);
+        loggingService.logWarning("Validation error", "validation", metadata);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -72,7 +81,9 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value()
         );
 
-        log.warn("Business validation error: {}", ex.getMessage());
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("errorMessage", ex.getMessage());
+        loggingService.logWarning("Business validation error", "validation", metadata);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -83,7 +94,9 @@ public class GlobalExceptionHandler {
                 HttpStatus.FORBIDDEN.value()
         );
 
-        log.warn("Unauthorized access attempt: {}", ex.getMessage());
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("errorMessage", ex.getMessage());
+        loggingService.logSecurity("unauthorized-access-attempt", null, metadata);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
@@ -94,7 +107,9 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_GATEWAY.value()
         );
 
-        log.error("Puntored client error: {}", ex.getMessage(), ex);
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("errorMessage", ex.getMessage());
+        loggingService.logError("Puntored client error", "external-service", ex, metadata);
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(errorResponse);
     }
 
@@ -105,7 +120,9 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value()
         );
 
-        log.warn("Illegal argument: {}", ex.getMessage());
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("errorMessage", ex.getMessage());
+        loggingService.logWarning("Illegal argument", "validation", metadata);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -116,7 +133,10 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR.value()
         );
 
-        log.error("Unexpected error", ex);
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("errorMessage", ex.getMessage());
+        metadata.put("errorType", ex.getClass().getSimpleName());
+        loggingService.logError("Unexpected error", "api", ex, metadata);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 }

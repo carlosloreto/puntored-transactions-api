@@ -1,8 +1,8 @@
 package com.puntored.transactions_api.application.usecase;
 
 import com.puntored.transactions_api.domain.port.PuntoredClientPort;
+import com.puntored.transactions_api.infrastructure.logging.StructuredLoggingService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -10,17 +10,17 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AuthenticateUseCase {
 
     private final PuntoredClientPort puntoredClient;
+    private final StructuredLoggingService loggingService;
 
     /**
      * Ejecuta la autenticación con Puntored
      * @return Token Bearer
      */
     public String execute() {
-        log.debug("Ejecutando caso de uso: Autenticación");
+        loggingService.logDebug("Ejecutando caso de uso: Autenticación", "external-service", null);
         return puntoredClient.authenticate();
     }
 }

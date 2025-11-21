@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Propiedades para el servicio -->
+    <springProperty scope="context" name="SERVICE_NAME" source="logging.service.name" defaultValue="puntored-transactions-api"/>
+    <springProperty scope="context" name="ENVIRONMENT" source="logging.environment" defaultValue="dev"/>
+
+    <!-- Appender para desarrollo: formato legible con colores -->
+    <springProfile name="dev">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <!-- Appender para producción: formato JSON estructurado -->
+    <springProfile name="prod">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <!-- Campos obligatorios -->
+                    <timestamp>
+                        <timeZone>UTC</timeZone>
+                        <fieldName>timestamp</fieldName>
+                    </timestamp>
+                    <version/>
+                    <logLevel>
+                        <fieldName>severity</fieldName>
+                    </logLevel>
+                    <message>
+                        <fieldName>message</fieldName>
+                    </message>
+                    
+                    <!-- Contexto del servicio -->
+                    <pattern>
+                        <pattern>
+                            {
+                                "service": "${SERVICE_NAME}",
+                                "environment": "${ENVIRONMENT}"
+                            }
+                        </pattern>
+                    </pattern>
+                    
+                    <!-- Contexto de request desde MDC -->
+                    <mdc>
+                        <includeMdcKeyName>requestId</includeMdcKeyName>
+                        <includeMdcKeyName>method</includeMdcKeyName>
+                        <includeMdcKeyName>path</includeMdcKeyName>
+                        <includeMdcKeyName>statusCode</includeMdcKeyName>
+                        <includeMdcKeyName>userAgent</includeMdcKeyName>
+                        <includeMdcKeyName>ip</includeMdcKeyName>
+                    </mdc>
+                    
+                    <!-- Contexto de usuario desde MDC - estructurado como objeto user -->
+                    <pattern>
+                        <pattern>
+                            {
+                                "user": {
+                                    "userId": "%mdc{userId:-}"
+                                }
+                            }
+                        </pattern>
+                    </pattern>
+                    
+                    <!-- Categoría desde MDC -->
+                    <mdc>
+                        <includeMdcKeyName>category</includeMdcKeyName>
+                    </mdc>
+                    
+                    <!-- Información de error si existe -->
+                    <stackTrace>
+                        <fieldName>error</fieldName>
+                        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                            <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                            <maxLength>2048</maxLength>
+                            <shortenedClassNameLength>20</shortenedClassNameLength>
+                            <rootCauseFirst>true</rootCauseFirst>
+                        </throwableConverter>
+                    </stackTrace>
+                    
+                    <!-- Metadata desde MDC (JSON string que se parseará en Cloud Logging) -->
+                    <mdc>
+                        <includeMdcKeyName>metadata</includeMdcKeyName>
+                    </mdc>
+                    
+                    <!-- Logger name y thread -->
+                    <loggerName>
+                        <fieldName>logger</fieldName>
+                    </loggerName>
+                    <threadName>
+                        <fieldName>thread</fieldName>
+                    </threadName>
+                </providers>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <!-- Root logger -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- Loggers específicos -->
+    <logger name="com.puntored.transactions_api" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+    
+    <logger name="org.springframework.web" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+    
+    <!-- Hibernate SQL completamente desactivado -->
+    <logger name="org.hibernate.SQL" level="OFF" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+    
+    <!-- Hibernate general en WARN -->
+    <logger name="org.hibernate" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+</configuration>
+

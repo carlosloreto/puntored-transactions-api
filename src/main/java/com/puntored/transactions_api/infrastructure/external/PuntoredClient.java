@@ -9,7 +9,7 @@ import com.puntored.transactions_api.infrastructure.external.dto.PuntoredAuthRes
 import com.puntored.transactions_api.infrastructure.external.dto.SupplierDto;
 import com.puntored.transactions_api.infrastructure.external.dto.BuyRequest;
 import com.puntored.transactions_api.infrastructure.external.dto.BuyResponse;
-import lombok.extern.slf4j.Slf4j;
+import com.puntored.transactions_api.infrastructure.logging.StructuredLoggingService;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -17,6 +17,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -25,15 +26,17 @@ import java.util.stream.Collectors;
  * Thread-safe mediante uso de AtomicReference para el token cacheado
  */
 @Component
-@Slf4j
 public class PuntoredClient implements PuntoredClientPort {
 
     private final WebClient webClient;
     private final PuntoredProperties properties;
+    private final StructuredLoggingService loggingService;
     private final AtomicReference<String> cachedToken = new AtomicReference<>();
 
-    public PuntoredClient(WebClient.Builder webClientBuilder, PuntoredProperties properties) {
+    public PuntoredClient(WebClient.Builder webClientBuilder, PuntoredProperties properties, 
+                          StructuredLoggingService loggingService) {
         this.properties = properties;
+        this.loggingService = loggingService;
         this.webClient = webClientBuilder
                 .baseUrl(properties.getBaseUrl())
                 .defaultHeader("x-api-key", properties.getApiKey())
@@ -42,11 +45,10 @@ public class PuntoredClient implements PuntoredClientPort {
 
     @Override
     public String authenticate() {
+        long startTime = System.currentTimeMillis();
+        String url = properties.getBaseUrl() + "/auth";
+        
         try {
-            log.debug("Autenticando con API de Puntored");
-            log.debug("URL: {}/auth", properties.getBaseUrl());
-            log.debug("User: {}", properties.getAuth().getUser());
-            
             PuntoredAuthRequest request = new PuntoredAuthRequest(
                     properties.getAuth().getUser(),
                     properties.getAuth().getPassword()
@@ -62,28 +64,37 @@ public class PuntoredClient implements PuntoredClientPort {
                     .timeout(Duration.ofSeconds(properties.getTimeouts().getDefaultTimeout()))
                     .block();
 
+            long duration = System.currentTimeMillis() - startTime;
+
             if (response == null || response.getToken() == null) {
+                loggingService.logExternalService("Puntored", "POST", url, null, duration, 
+                        Map.of("error", "Respuesta de autenticación vacía"));
                 throw new PuntoredClientException("Respuesta de autenticación vacía");
             }
 
             cachedToken.set(response.getToken());
-            log.info("Autenticación exitosa");
+            loggingService.logExternalService("Puntored", "POST", url, 200, duration, null);
             return cachedToken.get();
 
         } catch (WebClientResponseException e) {
-            log.error("Error HTTP en autenticación: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            long duration = System.currentTimeMillis() - startTime;
+            loggingService.logExternalService("Puntored", "POST", url, e.getStatusCode().value(), duration, 
+                    Map.of("error", e.getResponseBodyAsString()));
             throw new PuntoredClientException("Error en autenticación con Puntored: " + e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Error inesperado en autenticación", e);
+            long duration = System.currentTimeMillis() - startTime;
+            loggingService.logError("Error inesperado en autenticación con Puntored", "external-service", e, 
+                    Map.of("url", url, "durationMs", duration));
             throw new PuntoredClientException("Error inesperado en autenticación: " + e.getMessage(), e);
         }
     }
 
     @Override
     public List<Supplier> getSuppliers(String token) {
+        long startTime = System.currentTimeMillis();
+        String url = properties.getBaseUrl() + "/getSuppliers";
+        
         try {
-            log.debug("Obteniendo proveedores de Puntored");
-
             List<SupplierDto> suppliers = webClient.get()
                     .uri("/getSuppliers")
                     .header("authorization", token)
@@ -92,19 +103,26 @@ public class PuntoredClient implements PuntoredClientPort {
                     .timeout(Duration.ofSeconds(properties.getTimeouts().getDefaultTimeout()))
                     .block();
 
+            long duration = System.currentTimeMillis() - startTime;
+
             if (suppliers == null) {
+                loggingService.logExternalService("Puntored", "GET", url, null, duration, 
+                        Map.of("error", "Respuesta de proveedores vacía"));
                 throw new PuntoredClientException("Respuesta de proveedores vacía");
             }
 
-            log.info("Obtenidos {} proveedores", suppliers.size());
+            loggingService.logExternalService("Puntored", "GET", url, 200, duration, 
+                    Map.of("suppliersCount", suppliers.size()));
             return suppliers.stream()
                     .map(dto -> new Supplier(dto.getId(), dto.getName()))
                     .collect(Collectors.toList());
 
         } catch (WebClientResponseException e) {
+            long duration = System.currentTimeMillis() - startTime;
             // Si el token expiró (401), invalidar cache y reintentar UNA vez
             if (e.getStatusCode().value() == 401) {
-                log.warn("Token de Puntored expirado, re-autenticando...");
+                loggingService.logWarning("Token de Puntored expirado, re-autenticando...", "external-service", 
+                        Map.of("url", url, "durationMs", duration));
                 cachedToken.set(null); // Invalidar token cacheado
                 
                 // Reintentar con nuevo token
@@ -112,20 +130,28 @@ public class PuntoredClient implements PuntoredClientPort {
                 return getSuppliers(newToken);
             }
             
-            log.error("Error HTTP obteniendo proveedores: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            loggingService.logExternalService("Puntored", "GET", url, e.getStatusCode().value(), duration, 
+                    Map.of("error", e.getResponseBodyAsString()));
             throw new PuntoredClientException("Error obteniendo proveedores: " + e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Error inesperado obteniendo proveedores", e);
+            long duration = System.currentTimeMillis() - startTime;
+            loggingService.logError("Error inesperado obteniendo proveedores", "external-service", e, 
+                    Map.of("url", url, "durationMs", duration));
             throw new PuntoredClientException("Error inesperado obteniendo proveedores: " + e.getMessage(), e);
         }
     }
 
     @Override
     public String buy(String token, String phoneNumber, Long amount, String supplierId) {
-        try {
-            log.info("Realizando compra - Teléfono: {}, Monto: {}, Proveedor: {}", 
-                    phoneNumber, amount, supplierId);
+        long startTime = System.currentTimeMillis();
+        String url = properties.getBaseUrl() + "/buy";
+        Map<String, Object> metadata = Map.of(
+                "phoneNumber", phoneNumber,
+                "amount", amount,
+                "supplierId", supplierId
+        );
 
+        try {
             BuyRequest request = BuyRequest.builder()
                     .phoneNumber(phoneNumber)
                     .amount(amount)
@@ -142,25 +168,40 @@ public class PuntoredClient implements PuntoredClientPort {
                     .timeout(Duration.ofSeconds(properties.getTimeouts().getBuyTimeout()))
                     .block();
 
+            long duration = System.currentTimeMillis() - startTime;
+
             if (response == null || response.getTransactionalID() == null) {
+                loggingService.logExternalService("Puntored", "POST", url, null, duration, 
+                        Map.of("error", "Respuesta de compra vacía", "phoneNumber", phoneNumber, 
+                                "amount", amount, "supplierId", supplierId));
                 throw new PuntoredClientException("Respuesta de compra vacía");
             }
 
-            log.info("Compra exitosa - ID: {}, Mensaje: {}", response.getTransactionalID(), response.getMessage());
+            Map<String, Object> successMetadata = new java.util.HashMap<>(metadata);
+            successMetadata.put("transactionalID", response.getTransactionalID());
+            successMetadata.put("message", response.getMessage());
+            loggingService.logExternalService("Puntored", "POST", url, 200, duration, successMetadata);
             return response.getTransactionalID();
 
         } catch (WebClientResponseException e) {
+            long duration = System.currentTimeMillis() - startTime;
             // Si el token expiró (401), invalidar cache y lanzar excepción para que el caso de uso reintente
             if (e.getStatusCode().value() == 401) {
-                log.warn("Token de Puntored expirado durante compra, invalidando cache");
+                loggingService.logWarning("Token de Puntored expirado durante compra, invalidando cache", 
+                        "external-service", Map.of("url", url, "durationMs", duration));
                 cachedToken.set(null); // Invalidar token cacheado
                 throw new PuntoredClientException("Token expirado. Por favor reintente la operación.", e);
             }
             
-            log.error("Error HTTP en compra: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            Map<String, Object> errorMetadata = new java.util.HashMap<>(metadata);
+            errorMetadata.put("error", e.getResponseBodyAsString());
+            loggingService.logExternalService("Puntored", "POST", url, e.getStatusCode().value(), duration, errorMetadata);
             throw new PuntoredClientException("Error en compra: " + e.getMessage(), e);
         } catch (Exception e) {
-            log.error("Error inesperado en compra", e);
+            long duration = System.currentTimeMillis() - startTime;
+            loggingService.logError("Error inesperado en compra", "external-service", e, 
+                    Map.of("url", url, "durationMs", duration, "phoneNumber", phoneNumber, 
+                            "amount", amount, "supplierId", supplierId));
             throw new PuntoredClientException("Error inesperado en compra: " + e.getMessage(), e);
         }
     }

@@ -11,9 +11,16 @@
       "type": "string"
     },
     {
-      "key": "token",
+      "key": "puntored_token",
       "value": "",
-      "type": "string"
+      "type": "string",
+      "description": "Token Bearer de Puntored (para /api/suppliers)"
+    },
+    {
+      "key": "supabase_jwt",
+      "value": "",
+      "type": "string",
+      "description": "JWT de Supabase (para /api/recharges y /api/transactions)"
     }
   ],
   "item": [
@@ -21,7 +28,7 @@
       "name": "1. Autenticación",
       "item": [
         {
-          "name": "Obtener Token",
+          "name": "Obtener Token de Puntored",
           "event": [
             {
               "listen": "test",
@@ -29,8 +36,8 @@
                 "exec": [
                   "if (pm.response.code === 200) {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.collectionVariables.set('token', jsonData.token);",
-                  "    console.log('Token guardado:', jsonData.token);",
+                  "    pm.collectionVariables.set('puntored_token', jsonData.token);",
+                  "    console.log('Token de Puntored guardado:', jsonData.token);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -45,7 +52,44 @@
               "host": ["{{base_url}}"],
               "path": ["api", "auth"]
             },
-            "description": "Obtiene un token Bearer para autenticación con Puntored"
+            "description": "Obtiene un token Bearer para autenticación con la API de Puntored. Este token se usa para /api/suppliers."
+          },
+          "response": []
+        },
+        {
+          "name": "[DEV] Generar JWT de Supabase",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('supabase_jwt', jsonData.jwt);",
+                  "    console.log('JWT de Supabase guardado:', jsonData.jwt);",
+                  "    console.log('Email:', jsonData.email);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/test-jwt?email=test@example.com",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "test-jwt"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "test@example.com",
+                  "description": "Email del usuario para el JWT (opcional)"
+                }
+              ]
+            },
+            "description": "Genera un JWT válido de Supabase para pruebas. Solo disponible en desarrollo. Este JWT se usa para /api/recharges y /api/transactions."
           },
           "response": []
         }
@@ -61,7 +105,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "{{token}}",
+                "value": "{{puntored_token}}",
                 "type": "text"
               }
             ],
@@ -70,7 +114,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "suppliers"]
             },
-            "description": "Lista todos los proveedores de recargas disponibles"
+            "description": "Lista todos los proveedores de recargas disponibles. Requiere token de Puntored."
           },
           "response": []
         }
@@ -86,8 +130,9 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "{{token}}",
-                "type": "text"
+                "value": "Bearer {{supabase_jwt}}",
+                "type": "text",
+                "description": "JWT de Supabase (NO token de Puntored)"
               },
               {
                 "key": "Content-Type",
@@ -97,14 +142,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phoneNumber\": \"3001234567\",\n  \"amount\": 10000,\n  \"supplierId\": \"8753\"\n}"
+              "raw": "{\n  \"phoneNumber\": \"3001234567\",\n  \"amount\": 10000,\n  \"supplierId\": \"8753\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
               "host": ["{{base_url}}"],
               "path": ["api", "recharges"]
             },
-            "description": "Crea una recarga de 10,000 pesos para Claro"
+            "description": "Crea una recarga de 10,000 pesos para Claro. Requiere JWT de Supabase (no token de Puntored)."
           },
           "response": []
         },
@@ -115,7 +165,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "{{token}}",
+                "value": "Bearer {{supabase_jwt}}",
                 "type": "text"
               },
               {
@@ -126,14 +176,53 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phoneNumber\": \"3101234567\",\n  \"amount\": 20000,\n  \"supplierId\": \"9773\"\n}"
+              "raw": "{\n  \"phoneNumber\": \"3101234567\",\n  \"amount\": 20000,\n  \"supplierId\": \"9773\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
               "host": ["{{base_url}}"],
               "path": ["api", "recharges"]
             },
-            "description": "Crea una recarga de 20,000 pesos para Movistar"
+            "description": "Crea una recarga de 20,000 pesos para Movistar. Requiere JWT de Supabase."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear Recarga - Tigo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_jwt}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"3501234567\",\n  \"amount\": 15000,\n  \"supplierId\": \"3398\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/recharges",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recharges"]
+            },
+            "description": "Crea una recarga de 15,000 pesos para Tigo. Requiere JWT de Supabase."
           },
           "response": []
         }
@@ -143,16 +232,23 @@
       "name": "4. Transacciones",
       "item": [
         {
-          "name": "Listar Todas las Transacciones",
+          "name": "Listar Transacciones del Usuario",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_jwt}}",
+                "type": "text",
+                "description": "JWT de Supabase"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/transactions",
               "host": ["{{base_url}}"],
               "path": ["api", "transactions"]
             },
-            "description": "Obtiene el historial completo de transacciones"
+            "description": "Obtiene el historial de transacciones del usuario autenticado. Requiere JWT de Supabase."
           },
           "response": []
         },
@@ -160,13 +256,25 @@
           "name": "Obtener Transacción por ID",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_jwt}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/transactions/1",
               "host": ["{{base_url}}"],
-              "path": ["api", "transactions", "1"]
+              "path": ["api", "transactions", "1"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
             },
-            "description": "Obtiene los detalles de una transacción específica por ID"
+            "description": "Obtiene los detalles de una transacción específica por ID. Solo muestra transacciones del usuario autenticado. Requiere JWT de Supabase."
           },
           "response": []
         },
@@ -174,13 +282,25 @@
           "name": "Transacciones por Teléfono",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_jwt}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{base_url}}/api/transactions/phone/3001234567",
               "host": ["{{base_url}}"],
-              "path": ["api", "transactions", "phone", "3001234567"]
+              "path": ["api", "transactions", "phone", "3001234567"],
+              "variable": [
+                {
+                  "key": "phoneNumber",
+                  "value": "3001234567"
+                }
+              ]
             },
-            "description": "Obtiene todas las transacciones de un número de teléfono específico"
+            "description": "Obtiene todas las transacciones de un número de teléfono específico, solo del usuario autenticado. Requiere JWT de Supabase."
           },
           "response": []
         }
@@ -196,7 +316,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "{{token}}",
+                "value": "Bearer {{supabase_jwt}}",
                 "type": "text"
               },
               {
@@ -207,7 +327,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phoneNumber\": \"2001234567\",\n  \"amount\": 10000,\n  \"supplierId\": \"8753\"\n}"
+              "raw": "{\n  \"phoneNumber\": \"2001234567\",\n  \"amount\": 10000,\n  \"supplierId\": \"8753\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
@@ -219,13 +344,13 @@
           "response": []
         },
         {
-          "name": "Error - Monto Menor al Mínimo",
+          "name": "Error - Teléfono con Longitud Incorrecta",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Authorization",
-                "value": "{{token}}",
+                "value": "Bearer {{supabase_jwt}}",
                 "type": "text"
               },
               {
@@ -236,7 +361,46 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phoneNumber\": \"3001234567\",\n  \"amount\": 500,\n  \"supplierId\": \"8753\"\n}"
+              "raw": "{\n  \"phoneNumber\": \"300123456\",\n  \"amount\": 10000,\n  \"supplierId\": \"8753\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/recharges",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recharges"]
+            },
+            "description": "Debe retornar error 400 - teléfono debe tener exactamente 10 dígitos"
+          },
+          "response": []
+        },
+        {
+          "name": "Error - Monto Menor al Mínimo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{supabase_jwt}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"3001234567\",\n  \"amount\": 500,\n  \"supplierId\": \"8753\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
@@ -254,7 +418,7 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "{{token}}",
+                "value": "Bearer {{supabase_jwt}}",
                 "type": "text"
               },
               {
@@ -265,7 +429,12 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phoneNumber\": \"3001234567\",\n  \"amount\": 150000,\n  \"supplierId\": \"8753\"\n}"
+              "raw": "{\n  \"phoneNumber\": \"3001234567\",\n  \"amount\": 150000,\n  \"supplierId\": \"8753\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
@@ -275,9 +444,37 @@
             "description": "Debe retornar error 400 - monto mayor a 100000"
           },
           "response": []
+        },
+        {
+          "name": "Error - Sin JWT (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"3001234567\",\n  \"amount\": 10000,\n  \"supplierId\": \"8753\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/recharges",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recharges"]
+            },
+            "description": "Debe retornar error 401 - falta token de autenticación"
+          },
+          "response": []
         }
       ]
     }
   ]
 }
-

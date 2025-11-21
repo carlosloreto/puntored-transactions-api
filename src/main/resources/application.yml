@@ -2,25 +2,27 @@
 # Las credenciales específicas están en application-dev.yml y application-prod.yml
 
 server:
-  port: ${PORT:8080}  # Puerto por defecto, Cloud Run proporciona PORT automáticamente
+  port: ${PORT:8080} # Puerto por defecto, Cloud Run proporciona PORT automáticamente
 
 spring:
   application:
     name: puntored-transactions-api
-  
+
   # Perfil activo por defecto (cambiar a 'prod' en producción)
   # En Cloud Run, usar: SPRING_PROFILES_ACTIVE=prod
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
-  
+
   datasource:
     driver-class-name: org.postgresql.Driver
-  
+
   jpa:
     open-in-view: false
+    show-sql: false # Desactivar SQL en consola
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
+        use_sql_comments: false # Desactivar comentarios SQL
 
 # Configuración de Swagger/OpenAPI
 springdoc:
@@ -34,5 +36,15 @@ springdoc:
 puntored:
   api:
     timeouts:
-      default-timeout: 10  # Timeout para auth y getSuppliers (segundos)
-      buy-timeout: 30      # Timeout para operaciones de compra (segundos)
+      default-timeout: 10 # Timeout para auth y getSuppliers (segundos)
+      buy-timeout: 30 # Timeout para operaciones de compra (segundos)
+
+# Configuración de logging estructurado
+logging:
+  service:
+    name: puntored-transactions-api
+  environment: ${SPRING_PROFILES_ACTIVE:dev}
+  level:
+    org.hibernate.SQL: OFF # Desactivar SQL de Hibernate completamente
+    org.hibernate.type.descriptor.sql.BasicBinder: OFF # Desactivar binding parameters
+

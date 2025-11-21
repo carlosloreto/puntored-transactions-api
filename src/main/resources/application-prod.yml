@@ -17,18 +17,21 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
       auto-commit: true
-  
+
   jpa:
     hibernate:
-      ddl-auto: validate  # Solo valida, NO modifica schema en producción
-    show-sql: false       # No muestra queries en producción
+      ddl-auto: validate # Solo valida, NO modifica schema en producción
+    show-sql: false # No muestra queries en producción
     open-in-view: false
 
 logging:
   level:
     com.puntored.transactions_api: INFO
     org.springframework.web: WARN
+    org.hibernate.SQL: OFF # Desactivar SQL de Hibernate en producción
+    org.hibernate.type.descriptor.sql.BasicBinder: OFF
     org.hibernate: WARN
+  environment: prod
 
 # CORS para producción (dominios específicos)
 cors:
@@ -43,11 +46,10 @@ puntored:
       user: ${PUNTORED_USER}
       password: ${PUNTORED_PASSWORD}
     timeouts:
-      default-timeout: ${PUNTORED_DEFAULT_TIMEOUT:10}  # Timeout para auth y getSuppliers (segundos)
-      buy-timeout: ${PUNTORED_BUY_TIMEOUT:30}          # Timeout para operaciones de compra (segundos)
+      default-timeout: ${PUNTORED_DEFAULT_TIMEOUT:10} # Timeout para auth y getSuppliers (segundos)
+      buy-timeout: ${PUNTORED_BUY_TIMEOUT:30} # Timeout para operaciones de compra (segundos)
 
 # Configuración de Supabase JWT (PRODUCCIÓN)
 supabase:
   jwt-secret: ${SUPABASE_JWT_SECRET}
   jwt-issuer: ${SUPABASE_JWT_ISSUER}
-

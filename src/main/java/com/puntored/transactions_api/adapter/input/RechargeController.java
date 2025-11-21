@@ -6,6 +6,7 @@ import com.puntored.transactions_api.application.dto.RechargeRequestDto;
 import com.puntored.transactions_api.application.dto.RechargeResponseDto;
 import com.puntored.transactions_api.application.usecase.CreateRechargeUseCase;
 import com.puntored.transactions_api.domain.service.JwtValidationService;
+import com.puntored.transactions_api.infrastructure.logging.StructuredLoggingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,10 +15,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
  * Controlador REST para recargas móviles
@@ -25,12 +27,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/recharges")
 @RequiredArgsConstructor
-@Slf4j
 @Tag(name = "Recargas", description = "Endpoints para gestión de recargas móviles")
 public class RechargeController {
 
     private final CreateRechargeUseCase createRechargeUseCase;
     private final JwtValidationService jwtValidationService;
+    private final StructuredLoggingService loggingService;
 
     @PostMapping
     @Operation(summary = "Crear recarga", 
@@ -50,8 +52,12 @@ public class RechargeController {
         // Validar JWT y extraer userId del token
         String userId = jwtValidationService.validateAndExtractUserId(authHeader);
         
-        log.info("POST /api/recharges - Nueva recarga: userId={}, teléfono={}, monto={}, proveedor={}", 
-                userId, request.getPhoneNumber(), request.getAmount(), request.getSupplierId());
+        Map<String, Object> metadata = Map.of(
+                "phoneNumber", request.getPhoneNumber(),
+                "amount", request.getAmount(),
+                "supplierId", request.getSupplierId()
+        );
+        loggingService.logApi("POST", "/api/recharges", null, null, metadata);
 
         // Mapear request a DTO de aplicación
         RechargeRequestDto requestDto = RechargeRequestDto.builder()

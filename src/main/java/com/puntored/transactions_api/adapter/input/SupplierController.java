@@ -3,6 +3,7 @@ package com.puntored.transactions_api.adapter.input;
 import com.puntored.transactions_api.adapter.input.dto.SupplierResponse;
 import com.puntored.transactions_api.application.usecase.GetSuppliersUseCase;
 import com.puntored.transactions_api.domain.model.Supplier;
+import com.puntored.transactions_api.infrastructure.logging.StructuredLoggingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -10,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,11 +23,11 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/suppliers")
 @RequiredArgsConstructor
-@Slf4j
 @Tag(name = "Proveedores", description = "Endpoints para gestión de proveedores de recargas")
 public class SupplierController {
 
     private final GetSuppliersUseCase getSuppliersUseCase;
+    private final StructuredLoggingService loggingService;
 
     @GetMapping
     @Operation(summary = "Listar proveedores", 
@@ -42,7 +42,7 @@ public class SupplierController {
             @Parameter(description = "Token Bearer de autenticación", required = true)
             @RequestHeader("Authorization") String token) {
         
-        log.info("GET /api/suppliers - Solicitud de proveedores");
+        loggingService.logApi("GET", "/api/suppliers", null, null, null);
         List<Supplier> suppliers = getSuppliersUseCase.execute(token);
         
         List<SupplierResponse> response = suppliers.stream()
