@@ -1,4 +1,4 @@
-package com.puntored.transactions_api.domain.service;
+package com.puntored.transactions_api.infrastructure.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

@@ -1,6 +1,6 @@
 package com.puntored.transactions_api.infrastructure.logging;
 
-import com.puntored.transactions_api.domain.service.JwtValidationService;
+import com.puntored.transactions_api.infrastructure.security.JwtValidationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

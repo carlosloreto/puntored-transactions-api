@@ -123,6 +123,12 @@ Todos los cambios notables de este proyecto se documentarán en este archivo.
 - 🗑️ Removido header `X-User-Id` de CORS (reemplazado por JWT)
 - 🔧 Campo `user_id` ahora es NOT NULL en base de datos
 
+
+#### 🛡️ Seguridad Avanzada
+- 🔒 **Aislamiento de Entornos**: Nuevo controlador `DevAuthController` para herramientas de desarrollo.
+- 🔒 **Protección por Perfil**: Endpoint de generación de tokens (`/api/dev/generate-jwt`) restringido estrictamente al perfil `dev`.
+- 🔒 **Eliminación de Riesgos**: El código de prueba no se carga en el contexto de producción.
+
 ---
 
 ## Pendiente para Próximas Versiones

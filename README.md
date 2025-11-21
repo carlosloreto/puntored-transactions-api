@@ -628,6 +628,11 @@ CREATE TABLE transactions (
 - ✅ **Thread-safe**: Token cacheado con `AtomicReference` para concurrencia segura
 - ✅ **Renovación automática**: Se renueva cuando expira o está vacío
 
+### Aislamiento de Entornos (Nuevo)
+- ✅ **DevAuthController**: Endpoints de utilidad (como generación de JWT) aislados en un controlador separado.
+- ✅ **Protección por Perfil**: Anotado con `@Profile("dev")`, asegurando que este código **no se carga** en producción.
+- ✅ **Seguridad por Diseño**: Elimina la posibilidad de acceso accidental a herramientas de desarrollo en entornos productivos.
+
 ### Validaciones
 - ✅ **Múltiples capas**:
   - Bean Validation (`@Valid`, `@NotNull`, etc.)
