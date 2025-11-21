@@ -17,15 +17,20 @@ public class GetSuppliersUseCase {
 
     private final PuntoredClientPort puntoredClient;
     private final StructuredLoggingService loggingService;
+    private final AuthenticateUseCase authenticateUseCase;
 
     /**
      * Ejecuta la obtención de proveedores
-     * @param token Token de autenticación
+     * El token de Puntored se obtiene internamente
+     * 
      * @return Lista de proveedores
      */
-    public List<Supplier> execute(String token) {
-        loggingService.logDebug("Ejecutando caso de uso: Obtener Proveedores", "external-service", null);
-        return puntoredClient.getSuppliers(token);
+    public List<Supplier> execute() {
+        loggingService.logDebug("📱 Obteniendo proveedores de Puntored", "usecase", null);
+
+        // Obtener token de Puntored internamente
+        String puntoredToken = authenticateUseCase.execute();
+
+        return puntoredClient.getSuppliers(puntoredToken);
     }
 }
-

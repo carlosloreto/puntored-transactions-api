@@ -49,10 +49,15 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/auth",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth"
+              ]
             },
-            "description": "Obtiene un token Bearer para autenticación con la API de Puntored. Este token se usa para /api/suppliers."
+            "description": "⚠️ DEPRECADO: Este endpoint es solo para uso interno del backend. El frontend NO debe llamarlo. Use JWT de Supabase para todos los endpoints protegidos."
           },
           "response": []
         },
@@ -79,8 +84,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/auth/test-jwt?email=test@example.com",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "test-jwt"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "test-jwt"
+              ],
               "query": [
                 {
                   "key": "email",
@@ -105,16 +116,22 @@
             "header": [
               {
                 "key": "Authorization",
-                "value": "{{puntored_token}}",
-                "type": "text"
+                "value": "Bearer {{supabase_jwt}}",
+                "type": "text",
+                "description": "JWT de Supabase (NO token de Puntored)"
               }
             ],
             "url": {
               "raw": "{{base_url}}/api/suppliers",
-              "host": ["{{base_url}}"],
-              "path": ["api", "suppliers"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "suppliers"
+              ]
             },
-            "description": "Lista todos los proveedores de recargas disponibles. Requiere token de Puntored."
+            "description": "Lista todos los proveedores de recargas disponibles. Requiere JWT de Supabase. El backend obtiene el token de Puntored internamente."
           },
           "response": []
         }
@@ -151,8 +168,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
-              "host": ["{{base_url}}"],
-              "path": ["api", "recharges"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "recharges"
+              ]
             },
             "description": "Crea una recarga de 10,000 pesos para Claro. Requiere JWT de Supabase (no token de Puntored)."
           },
@@ -185,8 +207,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
-              "host": ["{{base_url}}"],
-              "path": ["api", "recharges"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "recharges"
+              ]
             },
             "description": "Crea una recarga de 20,000 pesos para Movistar. Requiere JWT de Supabase."
           },
@@ -219,8 +246,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
-              "host": ["{{base_url}}"],
-              "path": ["api", "recharges"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "recharges"
+              ]
             },
             "description": "Crea una recarga de 15,000 pesos para Tigo. Requiere JWT de Supabase."
           },
@@ -245,8 +277,13 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/transactions",
-              "host": ["{{base_url}}"],
-              "path": ["api", "transactions"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "transactions"
+              ]
             },
             "description": "Obtiene el historial de transacciones del usuario autenticado. Requiere JWT de Supabase."
           },
@@ -265,8 +302,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/transactions/1",
-              "host": ["{{base_url}}"],
-              "path": ["api", "transactions", "1"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "transactions",
+                "1"
+              ],
               "variable": [
                 {
                   "key": "id",
@@ -291,8 +334,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/transactions/phone/3001234567",
-              "host": ["{{base_url}}"],
-              "path": ["api", "transactions", "phone", "3001234567"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "transactions",
+                "phone",
+                "3001234567"
+              ],
               "variable": [
                 {
                   "key": "phoneNumber",
@@ -336,8 +386,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
-              "host": ["{{base_url}}"],
-              "path": ["api", "recharges"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "recharges"
+              ]
             },
             "description": "Debe retornar error 400 - teléfono no inicia con 3"
           },
@@ -370,8 +425,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
-              "host": ["{{base_url}}"],
-              "path": ["api", "recharges"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "recharges"
+              ]
             },
             "description": "Debe retornar error 400 - teléfono debe tener exactamente 10 dígitos"
           },
@@ -404,8 +464,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
-              "host": ["{{base_url}}"],
-              "path": ["api", "recharges"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "recharges"
+              ]
             },
             "description": "Debe retornar error 400 - monto menor a 1000"
           },
@@ -438,8 +503,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
-              "host": ["{{base_url}}"],
-              "path": ["api", "recharges"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "recharges"
+              ]
             },
             "description": "Debe retornar error 400 - monto mayor a 100000"
           },
@@ -467,8 +537,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/recharges",
-              "host": ["{{base_url}}"],
-              "path": ["api", "recharges"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "recharges"
+              ]
             },
             "description": "Debe retornar error 401 - falta token de autenticación"
           },
