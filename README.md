@@ -38,6 +38,15 @@ API REST para el portal transaccional de recargas móviles de Puntored. Implemen
 - PostgreSQL (o cuenta de Supabase)
 - Credenciales de API de Puntored
 
+## 🗄️ Base de Datos
+
+El proyecto incluye el script SQL necesario para crear la estructura de la base de datos.
+
+1. **Crear la tabla:** Ejecuta el script `database/schema.sql` en tu base de datos PostgreSQL.
+   - Este script crea la tabla `transactions` y todos los índices necesarios.
+
+2. **Consultas de ejemplo:** Puedes usar `database/queries.sql` para ver ejemplos de consultas útiles.
+
 ## 🔧 Instalación
 
 **Clonar el repositorio:**
