@@ -56,7 +56,7 @@ cp .env.example .env.local
 Edita `.env.local` con tus credenciales:
 ```properties
 # Base de datos
-DB_URL=jdbc:postgresql://...
+DB_URL=jdbc:postgresql://tu-host.supabase.co:5432/postgres
 DB_USERNAME=postgres
 DB_PASSWORD=tu-password
 
@@ -69,6 +69,9 @@ PUNTORED_PASSWORD=tu-password
 # Supabase JWT
 SUPABASE_JWT_SECRET=tu-jwt-secret
 SUPABASE_JWT_ISSUER=https://tu-proyecto.supabase.co/auth/v1
+
+# CORS (opcional, por defecto: localhost:3000,localhost:5173)
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 ```
 
 **Iniciar la aplicación:**
@@ -77,6 +80,7 @@ SUPABASE_JWT_ISSUER=https://tu-proyecto.supabase.co/auth/v1
 ```
 
 La API estará disponible en `http://localhost:8080`
+
 
 ## 🏗️ Build para Producción
 
