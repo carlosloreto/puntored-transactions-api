@@ -189,8 +189,8 @@ El proyecto cuenta con **45 tests automatizados** (100% pasando):
 - `test` - Tests (usa `application-test.yml`)
 
 **Variables de Entorno:**
-- `.env.local` - Desarrollo (NO subir a git)
-- `.env.example` - Plantilla (SÍ subir a git)
+- `.env.local` - Desarrollo 
+- `.env.example` - Plantilla
 - Producción: Configurar en Cloud Run o servidor
 
 **Logging:**
@@ -247,6 +247,13 @@ Una vez ejecutada la aplicación, accede a:
 ```
 http://localhost:8080/swagger-ui.html
 ```
+
+### Postman Collection
+
+Para probar los endpoints, se incluye una colección de Postman en el repositorio:
+- **Ubicación:** `postman/Puntored_Transactions_API.postman_collection.json`
+- **Uso:** Importar en Postman y configurar la variable `base_url` (por defecto `http://localhost:8080`).
+
 
 ### Endpoints Principales
 
