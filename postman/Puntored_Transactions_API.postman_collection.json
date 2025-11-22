@@ -23,31 +23,6 @@
       "description": "JWT de Supabase (para /api/recharges y /api/transactions)"
     }
   ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "// Inyectar automáticamente el JWT de Supabase en requests protegidas",
-          "const supabaseJwt = pm.collectionVariables.get('supabase_jwt');",
-          "",
-          "if (supabaseJwt && pm.request.url.path) {",
-          "    const path = pm.request.url.path.join('/');",
-          "    ",
-          "    // Endpoints que requieren JWT de Supabase",
-          "    if (path.includes('api/suppliers') || path.includes('api/recharges') || path.includes('api/transactions')) {",
-          "        pm.request.headers.add({",
-          "            key: 'Authorization',",
-          "            value: 'Bearer ' + supabaseJwt",
-          "        });",
-          "        console.log('✅ JWT inyectado automáticamente en:', path);",
-          "    }",
-          "}"
-        ]
-      }
-    }
-  ],
   "item": [
     {
       "name": "1. Autenticación",
@@ -98,7 +73,6 @@
                   "    pm.collectionVariables.set('supabase_jwt', jsonData.jwt);",
                   "    console.log('JWT de Supabase guardado:', jsonData.jwt);",
                   "    console.log('Email:', jsonData.email);",
-                  "    console.log('✅ JWT configurado automáticamente para todas las requests');",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -126,7 +100,7 @@
                 }
               ]
             },
-            "description": "🔧 SOLO DESARROLLO: Genera un JWT válido de Supabase para pruebas. Este endpoint solo está disponible en perfil 'dev'."
+            "description": "Genera un JWT válido de Supabase para pruebas. Solo disponible en desarrollo. Este JWT se usa para /api/recharges y /api/transactions."
           },
           "response": []
         }
