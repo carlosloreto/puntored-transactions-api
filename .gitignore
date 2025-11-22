@@ -44,3 +44,4 @@ application-local.yml
 ### NO subir al repositorio - solo subir application-dev-example.yml ###
 src/main/resources/application-dev.yml
 
+.DS_Store
