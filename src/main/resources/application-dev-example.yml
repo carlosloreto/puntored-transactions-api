@@ -1,12 +1,15 @@
 # Configuración de EJEMPLO para DESARROLLO LOCAL
-# Copia este archivo como application-dev.yml y reemplaza con tus credenciales reales
-# NUNCA subas application-dev.yml con credenciales reales al repositorio
+# Copiar este archivo como application-dev.yml y configurar con valores reales
+# application-dev.yml NO debe subirse a Git (está en .gitignore)
+
+server:
+  port: 8080
 
 spring:
   datasource:
-    url: jdbc:postgresql://TU-HOST.pooler.supabase.com:5432/postgres
-    username: postgres.TU_PROJECT_REF
-    password: TU_PASSWORD_AQUI
+    url: jdbc:postgresql://[TU_HOST].supabase.com:5432/postgres
+    username: postgres.[TU_PROYECTO]
+    password: [TU_PASSWORD]
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -14,11 +17,11 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
       auto-commit: true
-  
+
   jpa:
     hibernate:
-      ddl-auto: update  # Permite crear/actualizar tablas automáticamente
-    show-sql: true      # Muestra queries SQL en logs
+      ddl-auto: update
+    show-sql: true
     open-in-view: false
 
 logging:
@@ -27,8 +30,10 @@ logging:
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate: INFO
+  environment: dev
 
-# CORS para desarrollo local
+# CORS para desarrollo (localhost)
 cors:
   allowed-origins: http://localhost:3000,http://localhost:5173
 
@@ -36,15 +41,15 @@ cors:
 puntored:
   api:
     base-url: https://us-central1-puntored-dev.cloudfunctions.net/technicalTest-developer/api
-    api-key: TU_API_KEY_DE_PUNTORED_AQUI
+    api-key: [TU_API_KEY]
     auth:
-      user: TU_USUARIO_PUNTORED
-      password: 'TU_PASSWORD_PUNTORED'
+      user: [TU_USUARIO]
+      password: [TU_PASSWORD]
+    timeouts:
+      default-timeout: 10
+      buy-timeout: 30
 
-# Configuración de Supabase JWT
+# Configuración de Supabase JWT (DESARROLLO)
 supabase:
-  jwt-secret: TU_JWT_SECRET_DE_SUPABASE_AQUI
-  # Obtener de: Supabase Dashboard > Settings > API > JWT Settings > JWT Secret
-  jwt-issuer: https://TU_PROJECT_REF.supabase.co/auth/v1
-  # Formato: https://{PROJECT_REF}.supabase.co/auth/v1
-
+  jwt-secret: [TU_JWT_SECRET]
+  jwt-issuer: https://[TU_PROYECTO].supabase.co/auth/v1

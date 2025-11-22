@@ -46,32 +46,31 @@ git clone https://github.com/carlosloreto/puntored-transactions-api.git
 cd puntored-transactions-api
 ```
 
-**Configurar variables de entorno:**
+**Configurar credenciales para desarrollo:**
 
-Copia el archivo `.env.example` a `.env.local`:
+Copia el archivo de ejemplo y configura tus credenciales:
 ```bash
-cp .env.example .env.local
+cp src/main/resources/application-dev-example.yml src/main/resources/application-dev.yml
 ```
 
-Edita `.env.local` con tus credenciales:
-```properties
-# Base de datos
-DB_URL=jdbc:postgresql://tu-host.supabase.co:5432/postgres
-DB_USERNAME=postgres
-DB_PASSWORD=tu-password
+Edita `application-dev.yml` con tus credenciales reales:
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://tu-host.supabase.com:5432/postgres
+    username: postgres.tu-proyecto
+    password: tu-password
 
-# API Puntored
-PUNTORED_BASE_URL=https://api.puntored.com
-PUNTORED_API_KEY=tu-api-key
-PUNTORED_USER=tu-usuario
-PUNTORED_PASSWORD=tu-password
+puntored:
+  api:
+    api-key: tu-api-key
+    auth:
+      user: tu-usuario
+      password: tu-password
 
-# Supabase JWT
-SUPABASE_JWT_SECRET=tu-jwt-secret
-SUPABASE_JWT_ISSUER=https://tu-proyecto.supabase.co/auth/v1
-
-# CORS (opcional, por defecto: localhost:3000,localhost:5173)
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+supabase:
+  jwt-secret: tu-jwt-secret
+  jwt-issuer: https://tu-proyecto.supabase.co/auth/v1
 ```
 
 **Iniciar la aplicación:**
